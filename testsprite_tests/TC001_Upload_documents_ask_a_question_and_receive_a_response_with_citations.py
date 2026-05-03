@@ -33,11 +33,12 @@ async def run_test():
  
         # -> Navigate to http://localhost:8080/
         await page.goto("http://localhost:8080/")
-        # -> Click the 'Book a Demo' button (element index 17) to verify it is clickable.
+        
+        # -> Click the 'Book a Demo' button to verify it is clickable.
         frame = context.pages[-1]
-        # Click element
-        elem = frame.locator('xpath=/html/body/nav/div/div/button[4]').nth(0)
-        await asyncio.sleep(3); await elem.click()
+        # Click element using text-based locator
+        elem = frame.locator('button.nav-cta:has-text("Book a Demo")').first
+        await asyncio.sleep(2); await elem.click()
         # --> Test passed — verified by AI agent
         frame = context.pages[-1]
         current_url = await frame.evaluate("() => window.location.href")
