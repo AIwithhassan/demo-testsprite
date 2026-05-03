@@ -1,0 +1,368 @@
+[
+  {
+    "id": "TC001",
+    "title": "Sign in with demo credentials to access the dashboard",
+    "description": "Verifies a user can log in with the demo credentials and is redirected to the protected dashboard where authenticated content is visible.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill test@example.com into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill password123 into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the dashboard"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Enforce dashboard protection when unauthenticated",
+    "description": "Verifies direct access to the dashboard without an authenticated session redirects the user to the login page.",
+    "category": "Protected Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the login page"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Log out to end the session and block dashboard access",
+    "description": "Verifies an authenticated user can log out, returns to login, and can no longer access the dashboard.",
+    "category": "Protected Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill test@example.com into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill password123 into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Trigger the logout action"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the login page"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Submit a valid contact message successfully",
+    "description": "Verifies a visitor can submit the contact form with valid inputs and sees the success confirmation.",
+    "category": "Contact Form",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /contact"
+      },
+      {
+        "type": "action",
+        "description": "Fill Jane Doe into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Fill jane.doe@example.com into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill I would like more information into the message field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the contact form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the exact text \"Message sent!\" is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Navigate across primary pages via the navbar",
+    "description": "Verifies a visitor can use the top navigation to reach About, Contact, and Login pages and each page renders its expected content.",
+    "category": "Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to view the about page"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to view the contact page"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to view the login page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the login form is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Block contact submission when required fields are missing",
+    "description": "Verifies the contact form prevents submission with missing required input and shows the validation error message.",
+    "category": "Contact Form",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /contact"
+      },
+      {
+        "type": "action",
+        "description": "Fill Jane Doe into the name field"
+      },
+      {
+        "type": "action",
+        "description": "Fill jane.doe@example.com into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill  into the message field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the contact form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the exact text \"Fill all fields correctly.\" is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Display authenticated dashboard welcome state after login",
+    "description": "Verifies the dashboard shows the expected authenticated welcome message after a successful login.",
+    "category": "Protected Dashboard",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill test@example.com into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill password123 into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the exact text \"Welcome! You are logged in.\" is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC008",
+    "title": "Home page renders the demo introduction and feature list",
+    "description": "Verifies the home page loads and shows the demo heading and a list of key features.",
+    "category": "Home Page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the home page heading is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a feature list is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC009",
+    "title": "View About page content",
+    "description": "Verifies a visitor can open the About page and see the About heading and the feature list rendered.",
+    "category": "About Page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /about"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the About page heading is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a list describing the demo features is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC010",
+    "title": "API hello endpoint returns the expected JSON message",
+    "description": "Verifies that visiting the hello API route returns a JSON response containing the expected hello message.",
+    "category": "API Hello Endpoint",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /api/hello"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the response body contains the exact text \"Hello from TestSprite API!\""
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC011",
+    "title": "Navigate to About from Home",
+    "description": "Verifies a visitor can use the primary navigation to go from Home to About and the About content renders.",
+    "category": "About Page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation link to the About page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the About page heading is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a list describing the demo features is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC012",
+    "title": "Reject invalid credentials and show the exact guidance message",
+    "description": "Verifies entering wrong credentials keeps the user on the login page and displays the exact error guidance text.",
+    "category": "User Login",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill wrong@example.com into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill wrongpass into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the exact text \"Use test@example.com / password123\" is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC013",
+    "title": "Return to Home from custom 404 page",
+    "description": "Verifies the custom 404 page is shown for an invalid route and the user can return to Home using the Go Home link.",
+    "category": "Custom 404 Page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /_not-found"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the 404 page heading is displayed"
+      },
+      {
+        "type": "action",
+        "description": "Click the link to go home"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the home page"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC014",
+    "title": "Custom 404 page shows explanatory subtitle",
+    "description": "Verifies the custom 404 page displays an explanatory subtitle indicating the page does not exist.",
+    "category": "Custom 404 Page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /_not-found"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the 404 page heading is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an explanatory subtitle indicating the page does not exist is displayed"
+      }
+    ],
+    "priority": "Low"
+  }
+]

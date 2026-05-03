@@ -1,0 +1,17 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "executionArgs": {
+    "projectName": "testsprite-demo",
+    "projectPath": "/Users/hassan.mahmood/Documents/hassan-docs/ai-projects-with-hassan/test-testsprite/testsprite-demo",
+    "testIds": [],
+    "additionalInstruction": "",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user-HTT-9ojODe9MxTKL5LMPtlRYE_9WetmsCwbNK03yS08H5Eo3Hb3q29pUtV6T-OJPFG21lnnHkrwCTiBSF7cr1iRNcnyWxyIH6emzt5EfXHuhEvIJ-whbPwLwqyeDdlnKzbY"
+    }
+  },
+  "serverPort": 59471
+}
