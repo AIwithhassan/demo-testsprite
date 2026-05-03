@@ -1,0 +1,3437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO (Section 18) -->
+    <title>RedFlag — Find contradictions in your case files before opposing counsel does</title>
+    <meta name="description" content="Upload your litigation documents. RedFlag finds every contradiction, date conflict, and cross-reference inconsistency — cited to source.">
+    <meta property="og:title" content="RedFlag — Litigation File Intelligence Application">
+    <meta property="og:description" content="Find what opposing counsel will find — before they do.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://redflag-ai.com">
+    <meta property="og:image" content="https://redflag-ai.com/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RedFlag — Find contradictions in case files">
+    <meta name="twitter:description" content="What takes your team a week, RedFlag does in 20 minutes — with citations.">
+
+    <!-- Fonts (Section 2) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+    <!-- Calendly (Section 16) -->
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+
+    <!-- Plausible Analytics (Section 17) -->
+    <script defer data-domain="redflag-ai.com" src="https://plausible.io/js/script.js"></script>
+
+    <style>
+        /* ─── Design tokens (Section 2) ─── */
+        :root {
+            --bg: #f4f1eb;
+            --bg-alt: #ebe7df;
+            --bg-dark: #1a1a1a;
+            --ink: #1a1a1a;
+            --ink-light: #4a4a4a;
+            --ink-muted: #8a8a8a;
+            --ink-on-dark: #f4f1eb;
+            --red: #c45d3a;
+            --red-light: #e8d5ce;
+            --red-dark: #9e3a1a;
+            --success: #2d6a4f;
+            --warning: #b8860b;
+            --border: #d4d0c8;
+            --shadow: rgba(0,0,0,0.08);
+        }
+
+        /* ─── Reset — NO rounded corners anywhere ─── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border-radius: 0 !important;
+        }
+
+        *:focus { outline: 2px solid var(--red); outline-offset: 2px; }
+        ::selection { background: var(--red); color: var(--bg); }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg);
+            color: var(--ink);
+            font-size: 14px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ─── Utility ─── */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .section { padding: 100px 0; }
+        .section-dark { background: var(--bg-dark); color: var(--ink-on-dark); }
+        .section-alt  { background: var(--bg-alt); }
+
+        .caption {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--ink-muted);
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 56px;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 36px;
+            font-weight: 400;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ─── Buttons (Section 2) ─── */
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            border: 2px solid transparent;
+            background: none;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: var(--bg);
+            border-color: var(--red);
+        }
+
+        .btn-primary:hover {
+            background: var(--red-dark);
+            border-color: var(--red-dark);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--ink);
+            border-color: var(--ink);
+        }
+
+        .btn-secondary:hover {
+            background: var(--ink);
+            color: var(--bg);
+        }
+
+        /* ─── Page transitions ─── */
+        #marketing-page { transition: opacity 0.3s ease; padding-top: 60px; }
+        #configuration-view,
+        #playground-view { display: none; transition: opacity 0.3s ease; padding-top: 60px; }
+
+        /* ═══════════════════════════════════════════════════════════
+           NAV (Section 4)
+        ═══════════════════════════════════════════════════════════ */
+        .site-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            z-index: 1000;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            transition: box-shadow 0.2s;
+        }
+
+        .site-nav.scrolled {
+            box-shadow: 0 2px 16px var(--shadow);
+        }
+
+        .site-nav .container {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-family: 'Instrument Serif', serif;
+            font-size: 28px;
+            font-weight: 400;
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-logo .red  { color: var(--red); }
+        .nav-logo .flag { color: var(--ink); }
+
+        .beta-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-alt);
+            color: var(--ink-muted);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-link {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--ink);
+            text-decoration: none;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+            transition: color 0.15s;
+        }
+
+        .nav-link:hover { color: var(--red); }
+        .nav-link.active { color: var(--red); font-weight: 600; }
+
+        .nav-cta {
+            background: var(--red);
+            color: var(--bg);
+            border: 2px solid var(--red);
+            padding: 8px 20px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .nav-cta:hover { background: var(--red-dark); border-color: var(--red-dark); }
+
+        .nav-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .nav-hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: var(--ink);
+        }
+
+        .nav-mobile-menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            border-bottom: 2px solid var(--border);
+            padding: 24px 40px;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .nav-mobile-menu.open { display: flex; }
+        .nav-mobile-menu .nav-link { font-size: 13px; }
+
+        /* ═══════════════════════════════════════════════════════════
+           HERO (Section 5)
+        ═══════════════════════════════════════════════════════════ */
+        #hero {
+            padding-top: 100px;
+            padding-bottom: 100px;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .hero-caption {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--ink-muted);
+            margin-bottom: 20px;
+        }
+
+        .hero-intro {
+            font-size: 14px;
+            color: var(--ink-light);
+            max-width: 600px;
+            margin: 0 auto 36px;
+            line-height: 1.7;
+        }
+
+        .hero-headline-wrap {
+            max-width: 860px;
+            min-height: 200px;
+            margin: 0 auto 32px;
+        }
+
+        .hero-headline {
+            font-family: 'Instrument Serif', serif;
+            font-size: 56px;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -1px;
+            display: inline;
+        }
+
+        .typewriter-cursor {
+            display: inline-block;
+            color: var(--red);
+            animation: cursor-blink 0.8s infinite;
+            margin-left: 2px;
+            font-family: 'Instrument Serif', serif;
+            font-size: 56px;
+            line-height: 1.1;
+        }
+
+        @keyframes cursor-blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .hero-subheadline {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--ink-muted);
+            max-width: 560px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 64px;
+            justify-content: center;
+        }
+
+        .hero-mockup {
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            box-shadow: 0 20px 60px var(--shadow);
+            padding: 32px;
+            max-width: 560px;
+            margin: 0 auto;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            text-align: left;
+        }
+
+        .mockup-line       { color: var(--ink-on-dark); }
+        .mockup-line.red   { color: var(--red); }
+        .mockup-line.green { color: var(--success); }
+
+        /* ═══════════════════════════════════════════════════════════
+           THE PROBLEM (Section 6)
+        ═══════════════════════════════════════════════════════════ */
+        .problem-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin-top: 48px;
+        }
+
+        .problem-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 32px;
+        }
+
+        .problem-card-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--red);
+            margin-bottom: 16px;
+        }
+
+        .problem-card-body {
+            color: var(--ink-on-dark);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           HOW IT WORKS (Section 7)
+        ═══════════════════════════════════════════════════════════ */
+        .steps-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 48px;
+            position: relative;
+        }
+
+        .steps-row::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 80px;
+            right: 80px;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .step-card { max-width: 340px; }
+
+        .step-number {
+            font-family: 'Instrument Serif', serif;
+            font-size: 48px;
+            font-weight: 400;
+            color: var(--red);
+            line-height: 1;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+            background: var(--bg);
+            display: inline-block;
+        }
+
+        .step-title {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .step-body {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--ink-light);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           FINDINGS (Section 8)
+        ═══════════════════════════════════════════════════════════ */
+        .findings-list { margin-top: 48px; }
+
+        .finding-row {
+            display: grid;
+            grid-template-columns: 1fr 160px 280px;
+            gap: 24px;
+            align-items: center;
+            padding: 24px;
+            border-left: 3px solid var(--red);
+            background: var(--bg);
+            margin-bottom: 2px;
+        }
+
+        .finding-text { font-size: 14px; line-height: 1.6; }
+
+        .finding-badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: var(--red-light);
+            color: var(--red-dark);
+            padding: 4px 10px;
+            display: inline-block;
+        }
+
+        .finding-badge.warning {
+            background: #f5e8c0;
+            color: var(--warning);
+        }
+
+        .finding-source { font-size: 12px; color: var(--ink-muted); line-height: 1.6; }
+
+        /* ═══════════════════════════════════════════════════════════
+           TIME COMPARISON (Section 9)
+        ═══════════════════════════════════════════════════════════ */
+        .comparison-cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            margin-top: 48px;
+        }
+
+        .comparison-col {
+            padding: 40px;
+            border: 2px solid var(--border);
+        }
+
+        .comparison-col-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+
+        .comparison-col.manual { color: var(--ink-muted); }
+        .comparison-col.redflag .comparison-col-title { color: var(--ink); font-weight: 600; }
+
+        .comparison-line {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .comparison-total {
+            padding-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .comparison-col.manual .comparison-total { text-decoration: line-through; }
+        .comparison-col.redflag .comparison-total { color: var(--red); }
+
+        .comparison-closing {
+            text-align: center;
+            margin-top: 48px;
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--ink-light);
+            max-width: 640px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           WHY REDFLAG — COMPARISON TABLE (Section 10)
+        ═══════════════════════════════════════════════════════════ */
+        .comparison-table-wrap { overflow-x: auto; }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 48px;
+            border: 1px solid var(--border);
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 16px 20px;
+            text-align: left;
+            border: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .comparison-table thead th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: var(--bg-alt);
+        }
+
+        .comparison-table .col-others { color: var(--ink-muted); }
+        .comparison-table .col-redflag { background: var(--red-light); color: var(--ink); }
+        .comparison-table .check { color: var(--success); }
+        .comparison-table .cross { color: var(--ink-muted); }
+
+        /* ═══════════════════════════════════════════════════════════
+           TRUST & PRIVACY (Section 11)
+        ═══════════════════════════════════════════════════════════ */
+        .trust-pillars {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 48px;
+        }
+
+        .trust-pillar { text-align: center; }
+
+        .trust-icon {
+            font-size: 32px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .trust-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--red);
+            margin-bottom: 16px;
+        }
+
+        .trust-body {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--ink-on-dark);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           CTA (Section 12)
+        ═══════════════════════════════════════════════════════════ */
+        #cta { padding: 120px 0; }
+
+        .cta-headline {
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto 64px;
+        }
+
+        .cta-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .cta-card {
+            background: var(--bg-alt);
+            border: 2px solid var(--border);
+            padding: 40px;
+        }
+
+        .cta-card-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--ink-muted);
+            margin-bottom: 16px;
+        }
+
+        .cta-card-body {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--ink-light);
+            margin-bottom: 28px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           FOOTER (Section 13)
+        ═══════════════════════════════════════════════════════════ */
+        .site-footer {
+            background: var(--bg-dark);
+            color: var(--ink-on-dark);
+            padding: 60px 0;
+        }
+
+        .footer-logo {
+            font-family: 'Instrument Serif', serif;
+            font-size: 28px;
+            color: var(--ink-on-dark);
+            margin-bottom: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-logo .beta-badge {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.14);
+            color: var(--ink-muted);
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           CONFIGURATION VIEW
+        ═══════════════════════════════════════════════════════════ */
+        #configuration-view {
+            min-height: 100vh;
+            background: var(--bg);
+        }
+
+        .config-shell {
+            padding: 80px 0 100px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+            gap: 2px;
+            align-items: start;
+        }
+
+        .config-panel {
+            border: 2px solid var(--border);
+            background: var(--bg);
+            padding: 32px;
+        }
+
+        .config-panel.alt {
+            background: var(--bg-alt);
+        }
+
+        .config-title {
+            margin-bottom: 12px;
+        }
+
+        .config-copy {
+            max-width: 56ch;
+            color: var(--ink-light);
+            margin-bottom: 28px;
+        }
+
+        .config-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .config-field label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--ink-muted);
+            margin-bottom: 8px;
+        }
+
+        .config-field select,
+        .config-field input {
+            width: 100%;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            padding: 12px 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--ink);
+        }
+
+        .config-field input::placeholder {
+            color: var(--ink-muted);
+        }
+
+        .config-help {
+            font-size: 11px;
+            color: var(--ink-muted);
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .config-button {
+            background: var(--red);
+            color: var(--bg);
+            border: 2px solid var(--red);
+            padding: 12px 18px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .config-button:hover {
+            background: var(--red-dark);
+            border-color: var(--red-dark);
+        }
+
+        .config-button.secondary {
+            background: transparent;
+            color: var(--ink);
+            border-color: var(--ink);
+        }
+
+        .config-button.secondary:hover {
+            background: var(--ink);
+            color: var(--bg);
+        }
+
+        .config-status {
+            min-height: 20px;
+            font-size: 11px;
+            color: var(--ink-muted);
+        }
+
+        .config-status.saved {
+            color: var(--success);
+        }
+
+        .config-card-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.6px;
+            color: var(--ink-muted);
+            margin-bottom: 16px;
+        }
+
+        .config-default {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--ink-light);
+        }
+
+
+        .config-specs {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 8px 14px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .config-specs dt {
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 10px;
+        }
+
+        .config-specs dd {
+            color: var(--ink);
+        }
+
+        .config-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .config-list-item {
+            padding-left: 14px;
+            position: relative;
+            font-size: 12px;
+            color: var(--ink-light);
+            line-height: 1.6;
+        }
+
+        .config-list-item::before {
+            content: '';
+            position: absolute;
+            top: 9px;
+            left: 0;
+            width: 5px;
+            height: 5px;
+            background: var(--red);
+        }
+
+        .footer-tagline {
+            font-size: 12px;
+            color: var(--ink-muted);
+            margin-bottom: 24px;
+        }
+
+        .footer-credits { font-size: 12px; color: var(--ink-muted); }
+
+        /* ═══════════════════════════════════════════════════════════
+           PLAYGROUND — CHAT UI (Section 14)
+        ═══════════════════════════════════════════════════════════ */
+        #playground-view {
+            height: 100vh;
+            padding-top: 60px;
+            box-sizing: border-box;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        .chat-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ── Sidebar ── */
+        .chat-sidebar {
+            width: 240px;
+            min-width: 240px;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid var(--border);
+            background: var(--bg-alt);
+            overflow: hidden;
+        }
+
+        .chat-sidebar-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .chat-sidebar-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--ink-muted);
+        }
+
+        .chat-new-btn {
+            background: var(--red);
+            color: var(--bg);
+            border: none;
+            padding: 4px 10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: background 0.15s;
+        }
+
+        .chat-new-btn:hover { background: var(--red-dark); }
+        .chat-new-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .chat-session-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+
+        .session-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.1s;
+        }
+
+        .session-item:hover { background: var(--bg); }
+        .session-item.active { border-left-color: var(--red); background: var(--bg); }
+
+        .session-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        .session-item.active .session-dot { background: var(--red); }
+
+        .session-label {
+            flex: 1;
+            font-size: 12px;
+            color: var(--ink);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        .session-meta { font-size: 10px; color: var(--ink-muted); white-space: nowrap; }
+
+        .session-del {
+            background: none;
+            border: none;
+            color: var(--ink-muted);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0 2px;
+            opacity: 0;
+            transition: opacity 0.1s;
+            font-family: inherit;
+        }
+
+        .session-item:hover .session-del { opacity: 1; }
+        .session-del:hover { color: var(--red); }
+
+        .session-rename-btn {
+            background: none;
+            border: none;
+            color: var(--ink-muted);
+            cursor: pointer;
+            font-size: 11px;
+            padding: 0 2px;
+            opacity: 0;
+            transition: opacity 0.1s;
+            font-family: inherit;
+        }
+
+        .session-item:hover .session-rename-btn,
+        .session-item.active .session-rename-btn { opacity: 1; }
+        .session-rename-btn:hover { color: var(--red); }
+
+        .session-label-input {
+            flex: 1;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            border: 1px solid var(--red);
+            background: var(--bg);
+            color: var(--ink);
+            padding: 1px 4px;
+            min-width: 0;
+            outline: none;
+        }
+
+        .chat-config-wrap {
+            border-top: 1px solid var(--border);
+            padding: 14px 16px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-config-summary {
+            font-size: 11px;
+            color: var(--ink-light);
+            line-height: 1.6;
+        }
+
+        .chat-config-summary strong {
+            color: var(--ink);
+        }
+
+        .chat-config-note {
+            font-size: 10px;
+            color: var(--ink-muted);
+            line-height: 1.6;
+        }
+
+        .chat-config-btn {
+            width: 100%;
+            background: var(--bg);
+            color: var(--ink);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .chat-config-btn:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .chat-model-wrap {
+            border-top: 1px solid var(--border);
+            padding: 14px 16px;
+            flex-shrink: 0;
+        }
+
+        .chat-model-wrap .pg-label { margin-bottom: 8px; }
+
+        .chat-model-wrap select,
+        .chat-model-wrap input {
+            width: 100%;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            padding: 5px 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--ink);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .chat-model-wrap input:last-child { margin-bottom: 0; }
+
+        /* ── Chat main ── */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .chat-topbar {
+            height: 38px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 8px;
+            background: var(--bg-alt);
+            font-size: 11px;
+            color: var(--ink-muted);
+            justify-content: space-between;
+        }
+
+        .chat-topbar-left { display: flex; align-items: center; gap: 8px; }
+
+        .chat-files-btn {
+            background: none;
+            border: 1px solid var(--border);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--ink-muted);
+            padding: 3px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.1s;
+        }
+
+        .chat-files-btn:hover { border-color: var(--red); color: var(--red); }
+
+        .capacity-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            flex-shrink: 0;
+        }
+
+        .capacity-dot.full { background: var(--red); }
+
+        /* ── Drop overlay ── */
+        .chat-drop-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(196,93,58,0.08);
+            border: 3px dashed var(--red);
+            z-index: 10;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Instrument Serif', serif;
+            font-size: 22px;
+            font-style: italic;
+            color: var(--red);
+            pointer-events: none;
+        }
+
+        .chat-drop-overlay.active { display: flex; }
+
+        .chat-main { position: relative; }
+
+        /* ── Files modal ── */
+        .files-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26,26,26,0.4);
+            z-index: 3000;
+            align-items: flex-start;
+            justify-content: flex-end;
+        }
+
+        .files-modal-overlay.active { display: flex; }
+
+        .files-modal {
+            margin: 50px 20px 0 0;
+            background: var(--bg);
+            border: 2px solid var(--ink);
+            min-width: 260px;
+            max-width: 340px;
+            box-shadow: 4px 4px 0 var(--ink);
+        }
+
+        .files-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-alt);
+        }
+
+        .files-modal-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--ink-muted);
+        }
+
+        .files-modal-close {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--ink-muted);
+            font-family: inherit;
+            padding: 0 2px;
+        }
+
+        .files-modal-close:hover { color: var(--red); }
+
+        .files-modal-list {
+            padding: 10px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .files-modal-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .files-modal-item:last-child { border-bottom: none; }
+        .files-modal-empty { padding: 20px 14px; font-size: 12px; color: var(--ink-muted); }
+
+        /* ── Messages ── */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: var(--border); }
+
+        .chat-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            padding: 60px 40px;
+            color: var(--ink-muted);
+        }
+
+        .chat-empty-state .empty-headline {
+            font-family: 'Instrument Serif', serif;
+            font-size: 22px;
+            font-style: italic;
+            color: var(--ink-light);
+            margin-bottom: 8px;
+        }
+
+        .chat-empty-state .empty-hint { font-size: 12px; }
+
+        /* ── Bubbles ── */
+        .chat-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            animation: msg-in 0.15s ease;
+        }
+
+        @keyframes msg-in {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-row.user { flex-direction: row-reverse; }
+
+        .chat-avatar {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0;
+        }
+
+        .chat-row.user .chat-avatar    { background: var(--ink); color: var(--bg); }
+        .chat-row.assistant .chat-avatar { background: var(--red); color: var(--bg); }
+
+        .chat-bubble {
+            max-width: 74%;
+            padding: 13px 16px;
+            font-size: 13px;
+            line-height: 1.75;
+            border: 1px solid var(--border);
+        }
+
+        .chat-row.user .chat-bubble {
+            background: var(--ink);
+            color: var(--bg);
+            border-color: var(--ink);
+        }
+
+        .chat-row.assistant .chat-bubble {
+            background: var(--bg);
+            border-left: 3px solid var(--red);
+        }
+
+        .chat-bubble-content { word-break: break-word; }
+        .chat-bubble-content h1, .chat-bubble-content h2, .chat-bubble-content h3 {
+            font-family: 'Instrument Serif', serif;
+            font-weight: 600;
+            margin: 12px 0 5px;
+            line-height: 1.3;
+            color: var(--ink);
+        }
+        .chat-bubble-content h2 { font-size: 14px; }
+        .chat-bubble-content h3 { font-size: 13px; }
+        .chat-bubble-content ul, .chat-bubble-content ol { margin: 4px 0 8px 18px; }
+        .chat-bubble-content li { margin-bottom: 3px; }
+        .chat-bubble-content p { margin-bottom: 8px; }
+        .chat-bubble-content p:last-child { margin-bottom: 0; }
+        .chat-bubble-content hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+        .chat-bubble-content strong { font-weight: 700; }
+        .chat-bubble-content em { font-style: italic; }
+        .chat-bubble-content code {
+            background: var(--bg-alt);
+            padding: 1px 4px;
+            font-size: 11px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        .section-collapsible {
+            margin-bottom: 12px;
+        }
+        .sub-section-content h2, .sub-section-content h3 {
+            display: none;
+        }
+
+        .chat-citation {
+            background: var(--red-light);
+            color: var(--red-dark);
+            padding: 1px 5px;
+            font-size: 11px;
+        }
+
+        /* Steps log */
+        .chat-steps-log {
+            margin-top: 12px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+
+        .chat-steps-toggle {
+            background: none;
+            border: none;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--ink-muted);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .chat-steps-toggle:hover { color: var(--red); }
+
+        .chat-steps-list {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .chat-step-line {
+            font-size: 11px;
+            color: var(--ink-muted);
+            padding: 2px 0 2px 8px;
+            border-left: 2px solid var(--border);
+        }
+
+        .chat-step-line.tool   { border-left-color: var(--success); }
+        .chat-step-line.ingest { border-left-color: #0969da; }
+        .chat-step-line.verify { border-left-color: var(--success); }
+
+        .chat-bubble-stats {
+            margin-top: 10px;
+            font-size: 10px;
+            color: var(--ink-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+        }
+
+        /* Thinking dots */
+        .chat-thinking { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+
+        .chat-thinking-dot {
+            width: 5px;
+            height: 5px;
+            background: var(--ink-muted);
+            animation: blink 1.2s infinite;
+        }
+
+        .chat-thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+        .chat-thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0.3; }
+            40%            { opacity: 1; }
+        }
+
+        /* ── Bottom input ── */
+        .chat-bottom {
+            border-top: 2px solid var(--border);
+            padding: 12px 20px 14px;
+            background: var(--bg);
+            flex-shrink: 0;
+        }
+
+        .chat-files-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .chat-file-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            padding: 3px 8px;
+            font-size: 11px;
+            color: var(--ink);
+        }
+
+        .chat-file-chip button {
+            background: none;
+            border: none;
+            color: var(--ink-muted);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            line-height: 1;
+            font-family: inherit;
+        }
+
+        .chat-file-chip button:hover { color: var(--red); }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .chat-attach-btn {
+            background: none;
+            border: 1px solid var(--border);
+            padding: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--ink-muted);
+            flex-shrink: 0;
+            transition: all 0.15s;
+            font-family: inherit;
+            height: 40px;
+        }
+
+        .chat-attach-btn:hover { border-color: var(--red); color: var(--red); }
+
+        .chat-query-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--ink);
+            resize: none;
+            min-height: 40px;
+            max-height: 160px;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
+
+        .chat-query-input:focus { outline: none; border-color: var(--ink); }
+        .chat-query-input::placeholder { color: var(--ink-muted); font-style: italic; }
+
+        .chat-send-col {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .chat-send-btn {
+            background: var(--red);
+            color: var(--bg);
+            border: none;
+            padding: 0 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: background 0.15s;
+            white-space: nowrap;
+            height: 32px;
+        }
+
+        .chat-send-btn:hover:not(:disabled) { background: var(--red-dark); }
+        .chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .chat-send-btn.secondary {
+            background: transparent;
+            color: var(--ink);
+            border: 1px solid var(--border);
+        }
+
+        .chat-send-btn.secondary:hover:not(:disabled) {
+            background: var(--bg-alt);
+            border-color: var(--ink);
+        }
+
+        .chat-input-hint {
+            font-size: 10px;
+            color: var(--ink-muted);
+            margin-top: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .compact-toggle {
+            background: transparent;
+            color: var(--ink-muted);
+            border: 1px solid var(--border);
+            padding: 0 10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            height: 32px;
+        }
+        .compact-toggle:hover { background: var(--bg-alt); border-color: var(--ink-muted); color: var(--ink); }
+        .compact-toggle.active {
+            background: var(--red-light);
+            border-color: var(--red);
+            color: var(--red-dark);
+        }
+
+        .playground-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            overflow: hidden;
+        }
+
+        .pg-left {
+            border-right: 2px solid var(--border);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .pg-right {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .pg-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--ink-muted);
+            margin-bottom: 10px;
+        }
+
+        /* Upload dropzone */
+        .dropzone {
+            border: 2px dashed var(--border);
+            background: var(--bg-alt);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--red);
+            background: var(--red-light);
+        }
+
+        .dropzone-main { font-size: 14px; color: var(--ink); margin-bottom: 8px; }
+        .dropzone-sub  { font-size: 12px; color: var(--ink-muted); margin-bottom: 6px; }
+        .dropzone-hint { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* File list */
+        .file-list { display: flex; flex-direction: column; gap: 4px; }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-alt);
+            font-size: 12px;
+        }
+
+        .file-remove {
+            background: none;
+            border: none;
+            color: var(--ink-muted);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 4px;
+            transition: color 0.15s;
+            font-family: inherit;
+        }
+
+        .file-remove:hover { color: var(--red); }
+
+        /* Query */
+        .pg-query-wrap { display: flex; flex-direction: column; }
+
+        .pg-query {
+            width: 100%;
+            background: var(--bg);
+            border: 2px solid var(--ink);
+            border-bottom: none;
+            padding: 14px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            color: var(--ink);
+            resize: none;
+            min-height: 80px;
+            line-height: 1.6;
+        }
+
+        .pg-query:focus { outline: none; background: #fff; }
+        .pg-query::placeholder { color: var(--ink-muted); font-style: italic; }
+
+        .pg-run-btn {
+            width: 100%;
+            background: var(--red);
+            color: var(--bg);
+            border: 2px solid var(--red);
+            padding: 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .pg-run-btn:hover:not(:disabled) { background: var(--red-dark); border-color: var(--red-dark); }
+        .pg-run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .pg-cancel-btn {
+            width: 100%;
+            background: var(--ink);
+            color: var(--bg);
+            border: 2px solid var(--ink);
+            padding: 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .pg-cancel-btn:hover { background: #333; }
+
+        /* Quick questions */
+        .quick-questions { display: flex; flex-direction: column; gap: 4px; }
+
+        .quick-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--ink-light);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+        }
+
+        .quick-btn::before { content: '→ '; color: var(--red); }
+        .quick-btn:hover { background: var(--red-light); border-color: var(--red); color: var(--red-dark); }
+
+        /* Analysis log */
+        .pg-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: var(--bg-alt);
+            border: 2px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pg-log-title { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--ink-muted); }
+        .pg-log-meta  { font-size: 11px; color: var(--ink-muted); }
+
+        .pg-log-body {
+            border: 2px solid var(--border);
+            border-top: none;
+            min-height: 160px;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .pg-log-body::-webkit-scrollbar { width: 4px; }
+        .pg-log-body::-webkit-scrollbar-track { background: var(--bg-alt); }
+        .pg-log-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+        .log-step {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            border-left: 3px solid var(--border);
+            font-size: 13px;
+            animation: log-fade-in 0.2s ease;
+        }
+
+        @keyframes log-fade-in {
+            from { opacity: 0; transform: translateX(-4px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .log-step.ingest   { border-left-color: #0969da; }
+        .log-step.tool     { border-left-color: var(--success); }
+        .log-step.navigate { border-left-color: var(--warning); }
+        .log-step.verify   { border-left-color: var(--success); }
+
+        .log-step-line { color: var(--ink-light); line-height: 1.5; }
+
+        /* Comparison timer */
+        .comparison-timer {
+            border: 2px solid var(--border);
+            border-top: none;
+            padding: 16px;
+            background: var(--bg-alt);
+            font-size: 13px;
+        }
+
+        .timer-red { color: var(--red); font-weight: 600; }
+
+        /* Result */
+        .pg-result { border: 2px solid var(--border); margin-top: 16px; }
+
+        .pg-result-header {
+            padding: 10px 16px;
+            background: var(--bg-alt);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .pg-result-header-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--ink-muted);
+        }
+
+        .pg-result-body {
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.85;
+            white-space: pre-wrap;
+        }
+
+        .pg-citation {
+            background: var(--red-light);
+            color: var(--red-dark);
+            padding: 1px 6px;
+            font-size: 11px;
+        }
+
+        .pg-result-stats {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-alt);
+            font-size: 12px;
+            color: var(--ink-muted);
+            line-height: 1.6;
+        }
+
+        .pg-result-cta {
+            padding: 20px;
+            border-top: 2px solid var(--border);
+            background: var(--bg-alt);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pg-result-cta-text { font-size: 12px; color: var(--ink-muted); }
+
+        /* Empty/ready state */
+        .pg-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            text-align: center;
+            border: 2px solid var(--border);
+            flex: 1;
+            min-height: 240px;
+        }
+
+        .pg-empty-prompt {
+            font-family: 'Instrument Serif', serif;
+            font-size: 20px;
+            font-style: italic;
+            color: var(--ink-light);
+            margin-bottom: 8px;
+        }
+
+        .pg-empty-hint { font-size: 12px; color: var(--ink-muted); }
+
+        /* Bottom bar */
+        .playground-bottombar {
+            height: 52px;
+            border-top: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-alt);
+            gap: 16px;
+            font-size: 12px;
+            color: var(--ink-muted);
+            flex-shrink: 0;
+            padding: 0 24px;
+        }
+
+        /* ─── Human input modal ─── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(244,241,235,0.96);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-box {
+            background: var(--bg);
+            border: 2px solid var(--ink);
+            padding: 40px;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 6px 6px 0 var(--ink);
+        }
+
+        .modal-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .modal-question {
+            background: var(--bg-alt);
+            border-left: 3px solid var(--red);
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: var(--bg);
+            border: 2px solid var(--ink);
+            padding: 12px 16px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 16px;
+        }
+
+        .modal-input:focus { outline: none; }
+
+        .modal-submit {
+            background: var(--red);
+            color: var(--bg);
+            border: 2px solid var(--red);
+            padding: 12px 24px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.15s;
+        }
+
+        .modal-submit:hover { background: var(--red-dark); border-color: var(--red-dark); }
+
+        /* ═══════════════════════════════════════════════════════════
+           MOBILE RESPONSIVENESS (Section 19)
+        ═══════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .container { padding: 0 20px; }
+            .section   { padding: 64px 0; }
+            #cta       { padding: 80px 0; }
+
+            h1 { font-size: 32px; }
+            h2 { font-size: 26px; }
+
+            .hero-headline     { font-size: 32px; }
+            .typewriter-cursor { font-size: 32px; }
+            .hero-headline-wrap { min-height: 120px; max-width: 100%; }
+
+            .nav-links     { display: none; }
+            .nav-hamburger { display: flex; }
+
+            .hero-buttons { flex-direction: column; }
+            .hero-buttons .btn { text-align: center; }
+
+            .problem-cards { grid-template-columns: 1fr; }
+
+            .steps-row { grid-template-columns: 1fr; }
+            .steps-row::before { display: none; }
+
+            .finding-row { grid-template-columns: 1fr; gap: 12px; }
+
+            .comparison-cols { grid-template-columns: 1fr; }
+
+            .trust-pillars { grid-template-columns: 1fr; }
+            .cta-cards     { grid-template-columns: 1fr; }
+
+            .config-grid { grid-template-columns: 1fr; }
+
+            .playground-body {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                overflow: visible;
+            }
+
+            .pg-left {
+                border-right: none;
+                border-bottom: 2px solid var(--border);
+                overflow-y: visible;
+            }
+
+            .pg-right { overflow-y: visible; }
+
+            .playground-topbar    { padding: 0 20px; }
+            .playground-bottombar { flex-direction: column; height: auto; padding: 16px 20px; gap: 8px; }
+            .pg-left  { padding: 20px; }
+            .pg-right { padding: 20px; }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .playground-body { grid-template-columns: 1fr 1fr; }
+            .problem-cards   { grid-template-columns: 1fr; }
+            .steps-row       { grid-template-columns: 1fr; }
+            .steps-row::before { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  PERSISTENT NAV (always visible)                                    -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<nav class="site-nav" id="site-nav">
+    <div class="container">
+        <button class="nav-logo" onclick="showMarketing()" aria-label="RedFlag home">
+            <span><span class="red">Red</span><span class="flag">Flag</span></span>
+            <span class="beta-badge">Beta</span>
+        </button>
+        <div class="nav-links">
+            <button class="nav-link" id="nav-home" onclick="showMarketing()">Home</button>
+            <a class="nav-link" id="nav-how" href="#how-it-works" onclick="showMarketingSection('how-it-works'); return false;">How It Works</a>
+            <button class="nav-link" id="nav-playground" onclick="showPlayground()">Playground</button>
+            <button class="nav-link" id="nav-config" onclick="showConfiguration()">Configuration</button>
+            <button class="nav-cta" onclick="bookDemo()">Book a Demo</button>
+        </div>
+        <button class="nav-hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+    <div class="nav-mobile-menu" id="mobile-menu">
+        <button class="nav-link" onclick="showMarketing(); closeMobileMenu();">Home</button>
+        <a class="nav-link" href="#how-it-works" onclick="showMarketingSection('how-it-works'); closeMobileMenu(); return false;">How It Works</a>
+        <button class="nav-link" onclick="showPlayground(); closeMobileMenu();">Playground</button>
+        <button class="nav-link" onclick="showConfiguration(); closeMobileMenu();">Configuration</button>
+        <button class="nav-cta" style="align-self:flex-start;" onclick="bookDemo()">Book a Demo</button>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  MARKETING PAGE                                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="marketing-page">
+
+    <!-- ── HERO (Section 5) ── -->
+    <section id="hero">
+        <div class="container">
+            <div class="hero-caption">Litigation File Intelligence Application</div>
+            <p class="hero-intro">RedFlag reads every document in your case, maps cross-references, tracks amendment chains, and surfaces every contradiction — cited to the exact page.</p>
+            <div class="hero-headline-wrap">
+                <span class="hero-headline" id="typewriter-text"></span><span class="typewriter-cursor">|</span>
+            </div>
+            <p class="hero-subheadline">
+                What takes your team a week of review, RedFlag does in 20 minutes — with citations.
+            </p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="showPlayground()">Try the Playground →</button>
+                <button class="btn btn-secondary" onclick="bookDemo()">Book a 15-min Demo</button>
+            </div>
+            <div class="hero-mockup" aria-label="Product preview">
+                <div class="mockup-line">// 12 documents analyzed</div>
+                <div class="mockup-line">// 380 pages scanned</div>
+                <div class="mockup-line red">// 7 contradictions found</div>
+                <div class="mockup-line">// 4 minutes 12 seconds</div>
+                <div class="mockup-line green">// All findings cited to source ✓</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── THE PROBLEM (Section 6) ── -->
+    <section class="section section-dark" id="problem">
+        <div class="container">
+            <div class="caption">The Problem</div>
+            <h2>The most expensive mistake in litigation is the one you didn't see.</h2>
+            <div class="problem-cards">
+                <div class="problem-card">
+                    <div class="problem-card-title">The Missed Cross-Reference</div>
+                    <p class="problem-card-body">Opposing counsel finds a date conflict between your client's affidavit and an email buried on page 247. You had the document. You missed it.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-card-title">The Wrong Version</div>
+                    <p class="problem-card-body">The contract says '30 days.' The amendment says '60 days.' The schedule still references the original. You cited the superseded clause.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-card-title">The Expensive Review</div>
+                    <p class="problem-card-body">Your associate reviewed 400 pages in 5 days. Billed $12,000. Missed 3 cross-reference inconsistencies. RedFlag would have found all three in 20 minutes for less than a dollar.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── HOW IT WORKS (Section 7) ── -->
+    <section class="section" id="how-it-works">
+        <div class="container">
+            <div class="caption">How It Works</div>
+            <h2>Upload. Scan. See what you missed.</h2>
+            <div class="steps-row">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <h3 class="step-title">Upload your case files</h3>
+                    <p class="step-body">Drop in PDFs, DOCX files, or a zip archive. Contracts, amendments, schedules, exhibits, correspondence — any document in your case.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <h3 class="step-title">RedFlag reads everything</h3>
+                    <p class="step-body">Every document is parsed locally. RedFlag builds a hierarchy (master → amendments → exhibits), maps every cross-reference, and tracks amendment chains. Then it reads strategically — not sequentially.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <h3 class="step-title">Get your contradiction report</h3>
+                    <p class="step-body">In roughly 20 minutes — not 5 days — you get a structured list of every inconsistency, date conflict, superseded reference, and factual contradiction. Each one cited to the exact document, section, and page.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── WHAT IT CATCHES (Section 8) ── -->
+    <section class="section section-alt" id="findings">
+        <div class="container">
+            <div class="caption">Findings</div>
+            <h2>What RedFlag finds in 20 minutes that takes an associate a week.</h2>
+            <div class="findings-list">
+                <div class="finding-row">
+                    <div class="finding-text">Email (Jan 5) states delivery date as March 1. Contract §3.2 states April 15.</div>
+                    <div><span class="finding-badge">Date Conflict</span></div>
+                    <div class="finding-source">email_chain.pdf → master_agreement.pdf §3.2</div>
+                </div>
+                <div class="finding-row">
+                    <div class="finding-text">Witness statement says 'no prior relationship.' Exhibit C shows 3 years of documented contact.</div>
+                    <div><span class="finding-badge">Factual Contradiction</span></div>
+                    <div class="finding-source">deposition_jones.pdf ¶12 → exhibit_c.pdf p.4</div>
+                </div>
+                <div class="finding-row">
+                    <div class="finding-text">Amendment 2 changes indemnification cap to $5M. Schedule A still references the original $2M cap.</div>
+                    <div><span class="finding-badge warning">Superseded Reference</span></div>
+                    <div class="finding-source">amendment_2.docx §4.1 → schedule_a.pdf §7</div>
+                </div>
+                <div class="finding-row">
+                    <div class="finding-text">Non-compete radius is '50 miles' in employment agreement but '100 miles' in separation agreement.</div>
+                    <div><span class="finding-badge">Term Conflict</span></div>
+                    <div class="finding-source">employment_agreement.pdf §8 → separation.pdf §3.2</div>
+                </div>
+                <div class="finding-row">
+                    <div class="finding-text">Closing date defined as 'within 90 days' in the LOI but 'within 60 days' in the Purchase Agreement.</div>
+                    <div><span class="finding-badge">Term Conflict</span></div>
+                    <div class="finding-source">loi.pdf §3 → purchase_agreement.pdf §2.4</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── TIME COMPARISON (Section 9) ── -->
+    <section class="section" id="math">
+        <div class="container">
+            <div class="caption">The Math</div>
+            <h2>A week of review. Done in 20 minutes.</h2>
+            <div class="comparison-cols">
+                <div class="comparison-col manual">
+                    <div class="comparison-col-title">Manual Review</div>
+                    <div class="comparison-line">400 pages across 15 documents</div>
+                    <div class="comparison-line">Associate reads each document (5 days)</div>
+                    <div class="comparison-line">Cross-references checked manually (missed 3)</div>
+                    <div class="comparison-line">Amendment chain tracked on sticky notes</div>
+                    <div class="comparison-total">Total: 5 days · $12,000 in billable time</div>
+                </div>
+                <div class="comparison-col redflag">
+                    <div class="comparison-col-title">With RedFlag</div>
+                    <div class="comparison-line">400 pages across 15 documents</div>
+                    <div class="comparison-line">All documents parsed simultaneously (2 min)</div>
+                    <div class="comparison-line">Every cross-reference followed automatically</div>
+                    <div class="comparison-line">Amendment chains tracked and verified</div>
+                    <div class="comparison-total">Total: 20 minutes · less than $1</div>
+                </div>
+            </div>
+            <p class="comparison-closing">
+                Same documents. Same contradictions found. One takes a week. One takes 20 minutes.
+            </p>
+        </div>
+    </section>
+
+    <!-- ── WHY REDFLAG (Section 10) ── -->
+    <section class="section" id="why-redflag">
+        <div class="container">
+            <div class="caption">Why RedFlag</div>
+            <h2>Not search. Not summary. Contradiction detection.</h2>
+            <div class="comparison-table-wrap">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Capability</th>
+                            <th>Others</th>
+                            <th class="col-redflag">RedFlag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cross-document reading</td>
+                            <td class="col-others cross">✕</td>
+                            <td class="col-redflag"><span class="check">✓</span> Follows every cross-reference</td>
+                        </tr>
+                        <tr>
+                            <td>Contradiction detection</td>
+                            <td class="col-others cross">✕</td>
+                            <td class="col-redflag"><span class="check">✓</span> Automatic</td>
+                        </tr>
+                        <tr>
+                            <td>Citation accuracy</td>
+                            <td class="col-others">Hallucinations</td>
+                            <td class="col-redflag"><span class="check">✓</span> Verified against source</td>
+                        </tr>
+                        <tr>
+                            <td>Amendment awareness</td>
+                            <td class="col-others cross">✕</td>
+                            <td class="col-redflag"><span class="check">✓</span> Tracks superseded clauses</td>
+                        </tr>
+                        <tr>
+                            <td>Document hierarchy</td>
+                            <td class="col-others cross">✕</td>
+                            <td class="col-redflag"><span class="check">✓</span> Master → Amendment → Exhibit</td>
+                        </tr>
+                        <tr>
+                            <td>Data privacy</td>
+                            <td class="col-others">Cloud upload</td>
+                            <td class="col-redflag"><span class="check">✓</span> Local parsing</td>
+                        </tr>
+                        <tr>
+                            <td>Time</td>
+                            <td class="col-others">Days</td>
+                            <td class="col-redflag"><span class="check">✓</span> 20 minutes</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── TRUST & PRIVACY (Section 11) ── -->
+    <section class="section section-dark" id="trust">
+        <div class="container">
+            <div class="caption">Built for Confidentiality</div>
+            <h2>Your documents never leave your control.</h2>
+            <div class="trust-pillars">
+                <div class="trust-pillar">
+                    <span class="trust-icon" aria-hidden="true">🔒</span>
+                    <div class="trust-title">Local Document Parsing</div>
+                    <p class="trust-body">Documents are parsed by MarkItDown, an open-source library from Microsoft running on-device. No files are uploaded to any third-party AI service. Ever.</p>
+                </div>
+                <div class="trust-pillar">
+                    <span class="trust-icon" aria-hidden="true">✓</span>
+                    <div class="trust-title">Verified Citations</div>
+                    <p class="trust-body">Every finding includes a citation. Every citation is checked against the actual source text before it's shown to you. If it can't be cited, it doesn't appear.</p>
+                </div>
+                <div class="trust-pillar">
+                    <span class="trust-icon" aria-hidden="true">⊘</span>
+                    <div class="trust-title">No Hallucinations</div>
+                    <p class="trust-body">RedFlag doesn't guess. It reads, compares, and reports. Findings are structural contradictions between documents — not AI speculation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── CTA (Section 12) ── -->
+    <section id="cta">
+        <div class="container">
+            <div class="cta-headline">
+                <h2>Try it on your next case. See what a week of review looks like in 20 minutes.</h2>
+            </div>
+            <div class="cta-cards">
+                <div class="cta-card">
+                    <div class="cta-card-label">Try the Playground</div>
+                    <p class="cta-card-body">Upload documents and run RedFlag. Free. No signup required.</p>
+                    <button class="btn btn-primary" onclick="showPlayground()">Open Playground →</button>
+                </div>
+                <div class="cta-card">
+                    <div class="cta-card-label">Book a Walkthrough</div>
+                    <p class="cta-card-body">I'll run RedFlag on your case files live. 15 minutes.</p>
+                    <button class="btn btn-secondary" onclick="bookDemo()">Book on Calendly →</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FOOTER (Section 13) ── -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-logo">RedFlag <span class="beta-badge">Beta</span></div>
+            <div class="footer-tagline">Litigation file intelligence.</div>
+            <div class="footer-credits">
+                Built by [Your Name] &nbsp;&nbsp; contact@redflag-ai.com<br>
+                © 2026 RedFlag. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+</div><!-- /#marketing-page -->
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  CONFIGURATION VIEW                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="configuration-view">
+    <section class="config-shell">
+        <div class="container">
+            <div class="config-grid">
+                <div class="config-panel">
+                    <div class="caption">Configuration</div>
+                    <h2 class="config-title">Use your own model provider.</h2>
+                    <p class="config-copy">RedFlag runs on the platform default out of the box. If you want your own credentials, add an API key and choose a model from OpenAI or Anthropic. Your settings are saved locally in this browser.</p>
+                    <div class="config-stack">
+                        <div class="config-field">
+                            <label for="cfg-provider">Provider</label>
+                            <select id="cfg-provider" onchange="handleConfigProviderChange()">
+                                <option value="openai">OpenAI</option>
+                                <option value="anthropic">Anthropic</option>
+                            </select>
+                        </div>
+                        <div class="config-field">
+                            <label for="cfg-model">Model</label>
+                            <select id="cfg-model"></select>
+                        </div>
+                        <div class="config-field">
+                            <label for="cfg-api-key">API Key</label>
+                            <input id="cfg-api-key" type="password" placeholder="Leave blank to use the platform default" />
+                            <div class="config-help">When this field is empty, RedFlag falls back to the hosted default: OpenRouter with GPT-5.4 mini.</div>
+                        </div>
+                        <div class="config-actions">
+                            <button class="config-button" onclick="saveConfiguration()">Save Configuration</button>
+                            <button class="config-button secondary" onclick="resetConfiguration()">Use Platform Default</button>
+                        </div>
+                        <div class="config-status" id="cfg-status"></div>
+                    </div>
+                </div>
+                <div class="config-panel alt">
+                    <div class="config-card-title">How It Works</div>
+                    <div class="config-list">
+                        <div class="config-list-item">OpenAI and Anthropic are available as user-managed providers from this page.</div>
+                        <div class="config-list-item">Your API key never leaves this browser except when sent directly to the RedFlag backend for your run.</div>
+                        <div class="config-list-item">If you clear the key, RedFlag uses the hosted default model automatically.</div>
+                    </div>
+                    <div class="config-default">
+                        <strong>Platform default</strong><br>
+                        OpenRouter · GPT-5.4 mini
+                        <dl class="config-specs">
+                            <dt>Provider</dt>
+                            <dd>OpenRouter</dd>
+                            <dt>Model</dt>
+                            <dd>openai/gpt-5.4-mini</dd>
+                            <dt>Access</dt>
+                            <dd>Hosted by default with no user API key required.</dd>
+                            <dt>Use case</dt>
+                            <dd>General document reasoning and contradiction analysis in RedFlag.</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div><!-- /#configuration-view -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!--  PLAYGROUND VIEW — CHAT UI (Section 14)                             -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="playground-view">
+    <div class="chat-layout">
+
+        <!-- ── SIDEBAR: session list + configuration summary ── -->
+        <div class="chat-sidebar">
+            <div class="chat-sidebar-top">
+                <span class="chat-sidebar-title">Sessions</span>
+                <button class="chat-new-btn" id="chat-new-btn" onclick="chatNewSession()">+ New</button>
+            </div>
+            <div id="chat-session-list" class="chat-session-list"></div>
+            <div class="chat-config-wrap">
+                <div class="pg-label">Model</div>
+                <div class="chat-config-summary" id="chat-config-summary"></div>
+                <div class="chat-config-note">No saved key means the platform default is used automatically.</div>
+                <button class="chat-config-btn" onclick="showConfiguration()">Open Configuration</button>
+            </div>
+        </div>
+
+        <!-- ── CHAT MAIN ── -->
+        <div class="chat-main">
+            <!-- Capacity / files bar -->
+            <div class="chat-topbar">
+                <div class="chat-topbar-left">
+                    <div class="capacity-dot" id="pg-capacity-dot"></div>
+                    <span id="pg-capacity-text">Checking availability...</span>
+                </div>
+                <button class="chat-files-btn" id="chat-files-btn" onclick="chatShowFilesModal()" style="display:none">📄 <span id="chat-files-count">0</span> files</button>
+            </div>
+
+            <!-- Messages -->
+            <div class="chat-messages" id="chat-messages"
+                ondragenter="chatDragOver(event)"
+                ondragover="chatDragOver(event)"
+                ondragleave="chatDragLeave(event)"
+                ondrop="chatDrop(event)">
+                <div class="chat-drop-overlay" id="chat-drop-overlay">Drop files to upload</div>
+                <div class="chat-empty-state" id="chat-empty-state">
+                    <div class="empty-headline">Upload documents or start chatting.</div>
+                    <div class="empty-hint">Drag &amp; drop files here, or use 📎 below.</div>
+                    <div class="quick-questions" style="margin-top:20px">
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Find cross-reference irregularities</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Summarize the key findings</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Identify missing or inconsistent data</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">What are the main risks or red flags?</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Extract all dates and deadlines</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input area -->
+            <div class="chat-bottom">
+                <div class="chat-files-bar" id="chat-files-bar" style="display:none"></div>
+                <div class="chat-input-row">
+                    <button class="chat-attach-btn" onclick="document.getElementById('pg-file-input').click()" title="Upload documents">📎</button>
+                    <textarea
+                        class="chat-query-input"
+                        id="pg-query-input"
+                        rows="2"
+                        placeholder="Ask about your documents, or chat directly… (Enter to send, Shift+Enter for newline)"
+                        onkeydown="chatInputKeydown(event)"
+                    ></textarea>
+                    <div class="chat-send-col">
+                        <button class="compact-toggle" id="pg-compact-btn" onclick="pgToggleCompact()" title="Compact context: send trimmed document summaries to save LLM tokens. Off = send full context (better quality).">⊟ Compact</button>
+                        <button class="chat-send-btn" id="pg-run-btn" onclick="pgRunAnalysis()" title="Full agent analysis of documents">⚙ Analyze</button>
+                    </div>
+                </div>
+                <div class="chat-input-hint">⚙ Full agent analysis · 📎 Upload files · ⊟ Compact context (off by default)</div>
+            </div>
+        </div>
+
+    </div>
+
+    <input type="file" id="pg-file-input" multiple accept=".pdf,.docx,.txt,.zip" style="display:none" onchange="pgFilesSelected(this.files)">
+</div><!-- /#playground-view -->
+
+<!-- Files modal -->
+<div class="files-modal-overlay" id="files-modal-overlay" onclick="chatCloseFilesModal(event)">
+    <div class="files-modal">
+        <div class="files-modal-header">
+            <span class="files-modal-title">Uploaded Files</span>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button class="files-modal-close" onclick="document.getElementById('pg-file-input').click()" title="Add files" style="font-size:14px;padding:4px 10px">+ Add</button>
+                <button class="files-modal-close" onclick="chatHideFilesModal()">✕</button>
+            </div>
+        </div>
+        <div class="files-modal-list" id="files-modal-list"></div>
+    </div>
+</div>
+
+
+<!-- Human input modal -->
+<div class="modal-overlay" id="human-modal" role="dialog" aria-modal="true">
+    <div class="modal-box">
+        <div class="modal-title">Input Required</div>
+        <div class="modal-question" id="human-modal-question"></div>
+        <textarea class="modal-input" id="human-modal-input" placeholder="Your response..."></textarea>
+        <button class="modal-submit" onclick="pgSubmitHuman()">Submit Response</button>
+    </div>
+</div>
+
+
+<script>
+    // ─── Configuration (Section 15) ─────────────────────────────
+    const API_ENDPOINTS = [
+        'http://187.124.23.208:8000',
+        'https://api.redflag-ai.com',
+        'http://localhost:8000'
+    ];
+    let API_BASE = '';
+
+    async function discoverBackend() {
+        const errors = [];
+        for (const url of API_ENDPOINTS) {
+            try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 3000);
+                const resp = await fetch(`${url}/api/playground/status`, { signal: controller.signal });
+                clearTimeout(timer);
+                if (resp.ok) {
+                    API_BASE = url;
+                    console.log(`Connected to backend: ${url}`);
+                    return true;
+                }
+                errors.push(`${url} responded with ${resp.status}`);
+            } catch (e) {
+                const reason = e instanceof Error ? e.message : String(e);
+                console.warn(`Backend not reachable at ${url}:`, reason);
+                errors.push(`${url}: ${reason}`);
+            }
+        }
+        console.error('Backend discovery failed. Checked endpoints:', errors);
+        return false;
+    }
+    const CONFIG_STORAGE_KEY = 'redflag-user-config';
+    const PROVIDER_MODELS = {
+        openai: [
+            { value: 'gpt-5.4-mini', label: 'GPT-5.4 mini' },
+            { value: 'gpt-4.1-mini', label: 'GPT-4.1 mini' }
+        ],
+        anthropic: [
+            { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku' },
+            { value: 'claude-3-7-sonnet-20250219', label: 'Claude 3.7 Sonnet' }
+        ]
+    };
+    const PLATFORM_DEFAULT_LABEL = 'OpenRouter · GPT-5.4 mini';
+
+    function getStoredConfiguration() {
+        const fallback = {
+            provider: 'openai',
+            model: 'gpt-5.4-mini',
+            apiKey: ''
+        };
+        try {
+            const raw = window.localStorage.getItem(CONFIG_STORAGE_KEY);
+            if (!raw) return fallback;
+            const parsed = JSON.parse(raw);
+            return {
+                provider: parsed.provider === 'anthropic' ? 'anthropic' : 'openai',
+                model: typeof parsed.model === 'string' && parsed.model ? parsed.model : fallback.model,
+                apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey : ''
+            };
+        } catch {
+            return fallback;
+        }
+    }
+
+    function setStoredConfiguration(config) {
+        window.localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config));
+    }
+
+    function configIsActive(config = getStoredConfiguration()) {
+        return Boolean(config.apiKey && config.apiKey.trim());
+    }
+
+    function getResolvedConfiguration() {
+        const config = getStoredConfiguration();
+        if (!configIsActive(config)) {
+            return {
+                active: false,
+                summary: `Platform default: ${PLATFORM_DEFAULT_LABEL}`
+            };
+        }
+
+        const providerLabel = config.provider === 'anthropic' ? 'Anthropic' : 'OpenAI';
+        const backendProvider = config.provider === 'anthropic' ? 'claude' : 'openai';
+        return {
+            active: true,
+            provider: backendProvider,
+            model: config.model,
+            apiKey: config.apiKey.trim(),
+            summary: `${providerLabel} · ${config.model}`
+        };
+    }
+
+    function populateModelOptions(provider, selectedModel) {
+        const modelSelect = document.getElementById('cfg-model');
+        if (!modelSelect) return;
+        const options = PROVIDER_MODELS[provider] || PROVIDER_MODELS.openai;
+        modelSelect.innerHTML = options.map(option => `<option value="${option.value}">${option.label}</option>`).join('');
+        modelSelect.value = options.some(option => option.value === selectedModel) ? selectedModel : options[0].value;
+    }
+
+    function renderConfigurationForm() {
+        const config = getStoredConfiguration();
+        const providerSelect = document.getElementById('cfg-provider');
+        const apiKeyInput = document.getElementById('cfg-api-key');
+        if (!providerSelect || !apiKeyInput) return;
+        providerSelect.value = config.provider;
+        populateModelOptions(config.provider, config.model);
+        apiKeyInput.value = config.apiKey;
+        updateConfigurationSummary();
+    }
+
+    function handleConfigProviderChange() {
+        const provider = document.getElementById('cfg-provider')?.value || 'openai';
+        populateModelOptions(provider, null);
+    }
+
+    function updateConfigurationStatus(message = '', isSaved = false) {
+        const status = document.getElementById('cfg-status');
+        if (!status) return;
+        status.textContent = message;
+        status.classList.toggle('saved', isSaved);
+    }
+
+    function saveConfiguration() {
+        const provider = document.getElementById('cfg-provider')?.value || 'openai';
+        const model = document.getElementById('cfg-model')?.value || PROVIDER_MODELS.openai[0].value;
+        const apiKey = document.getElementById('cfg-api-key')?.value || '';
+        setStoredConfiguration({ provider, model, apiKey });
+        updateConfigurationSummary();
+        updateConfigurationStatus(apiKey.trim() ? 'Saved. Your own provider will be used for future runs.' : 'Saved. Platform default is active because no API key is set.', true);
+    }
+
+    function resetConfiguration() {
+        const fallback = { provider: 'openai', model: 'gpt-5.4-mini', apiKey: '' };
+        setStoredConfiguration(fallback);
+        renderConfigurationForm();
+        updateConfigurationStatus('Platform default restored.', true);
+    }
+
+    function updateConfigurationSummary() {
+        const summary = document.getElementById('chat-config-summary');
+        if (!summary) return;
+        const resolved = getResolvedConfiguration();
+        summary.innerHTML = resolved.active
+            ? `<strong>${esc(resolved.summary)}</strong>`
+            : `<strong>${esc(PLATFORM_DEFAULT_LABEL)}</strong><br><span>Using the hosted default until you add your own API key.</span>`;
+    }
+
+    // ─── Playground state ────────────────────────────────────────
+    const pg = {
+        sessionId:      null,
+        files:          [],
+        ws:             null,
+        isRunning:      false,
+        documentsFound: 0,
+        startTime:      null,
+        timerInterval:  null,
+        stepCount:      0
+    };
+
+    // ─── HTML escape ─────────────────────────────────────────────
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+
+    // ─── Plausible helper ────────────────────────────────────────
+    function track(event) {
+        if (typeof plausible !== 'undefined') plausible(event);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  PAGE SWITCHING
+    // ═══════════════════════════════════════════════════════════
+    function setNavActive(view) {
+        document.getElementById('nav-home').classList.toggle('active', view === 'marketing');
+        document.getElementById('nav-playground').classList.toggle('active', view === 'playground');
+        document.getElementById('nav-how').classList.toggle('active', view === 'marketing');
+        document.getElementById('nav-config').classList.toggle('active', view === 'configuration');
+    }
+
+    const VIEW_IDS = {
+        marketing: 'marketing-page',
+        configuration: 'configuration-view',
+        playground: 'playground-view'
+    };
+
+    let currentView = 'marketing';
+
+    function transitionToView(view, { hash = '', afterShow = null } = {}) {
+        if (!VIEW_IDS[view]) return;
+
+        const nextEl = document.getElementById(VIEW_IDS[view]);
+        const currentEl = document.getElementById(VIEW_IDS[currentView]);
+        const finalize = () => {
+            Object.entries(VIEW_IDS).forEach(([key, id]) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (key === view) {
+                    el.style.display = key === 'marketing' ? '' : 'block';
+                    el.style.opacity = '0';
+                    requestAnimationFrame(() => { el.style.opacity = '1'; });
+                } else {
+                    el.style.display = 'none';
+                    el.style.opacity = '';
+                }
+            });
+            currentView = view;
+            window.history.replaceState(null, '', hash);
+            setNavActive(view);
+            if (typeof afterShow === 'function') afterShow();
+        };
+
+        closeMobileMenu();
+
+        if (!currentEl || currentEl === nextEl) {
+            finalize();
+            return;
+        }
+
+        currentEl.style.opacity = '0';
+        currentEl.style.pointerEvents = 'none';
+        setTimeout(() => {
+            currentEl.style.pointerEvents = '';
+            finalize();
+        }, 300);
+    }
+
+    function showPlayground() {
+        transitionToView('playground', {
+            hash: '#playground',
+            afterShow: () => pgCheckCapacity()
+        });
+    }
+
+    function showMarketing() {
+        transitionToView('marketing', { hash: '#' });
+    }
+
+    function showConfiguration() {
+        renderConfigurationForm();
+        transitionToView('configuration', { hash: '#configuration' });
+    }
+
+    function showMarketingSection(sectionId) {
+        transitionToView('marketing', {
+            hash: `#${sectionId}`,
+            afterShow: () => {
+                const target = document.getElementById(sectionId);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
+
+    function routeFromHash() {
+        const hash = window.location.hash;
+        if (hash === '#playground') {
+            showPlayground();
+            return;
+        }
+        if (hash === '#configuration') {
+            showConfiguration();
+            return;
+        }
+        const sectionId = hash.replace('#', '');
+        if (sectionId && document.getElementById(sectionId)) {
+            showMarketingSection(sectionId);
+            return;
+        }
+        showMarketing();
+    }
+
+    // Set initial active state
+    setNavActive('marketing');
+
+    window.addEventListener('hashchange', routeFromHash);
+
+    // ═══════════════════════════════════════════════════════════
+    //  NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('site-nav');
+        if (nav) nav.classList.toggle('scrolled', window.scrollY > 10);
+    });
+
+    function toggleMobileMenu() {
+        document.getElementById('mobile-menu').classList.toggle('open');
+    }
+
+    function closeMobileMenu() {
+        document.getElementById('mobile-menu').classList.remove('open');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  TYPEWRITER ANIMATION (Section 5)
+    // ═══════════════════════════════════════════════════════════
+    const headlines = [
+        "Find what opposing counsel will find — before they do.",
+        "Your associate missed it on day 3. RedFlag caught it in minute 4.",
+        "5 days of review. 20 minutes with RedFlag. Same documents.",
+        "The cross-reference on page 247 that changes everything.",
+        "Which version controls? RedFlag already checked.",
+        "Exhibit B contradicts Section 3.2. Did you catch that?",
+        "A week of document review. 20 minutes. Every contradiction found."
+    ];
+
+    let twIndex = 0, twCharIndex = 0, twDeleting = false;
+    const twEl = document.getElementById('typewriter-text');
+
+    function typewriterTick() {
+        if (!twEl) return;
+        const line = headlines[twIndex];
+        if (!twDeleting) {
+            twCharIndex++;
+            twEl.textContent = line.slice(0, twCharIndex);
+            if (twCharIndex === line.length) {
+                twDeleting = true;
+                setTimeout(typewriterTick, 3000);
+            } else {
+                setTimeout(typewriterTick, 50);
+            }
+        } else {
+            twCharIndex--;
+            twEl.textContent = line.slice(0, twCharIndex);
+            if (twCharIndex === 0) {
+                twDeleting = false;
+                twIndex = (twIndex + 1) % headlines.length;
+                setTimeout(typewriterTick, 500);
+            } else {
+                setTimeout(typewriterTick, 30);
+            }
+        }
+    }
+
+    typewriterTick();
+
+    // ═══════════════════════════════════════════════════════════
+    //  CALENDLY (Section 16)
+    // ═══════════════════════════════════════════════════════════
+    function bookDemo() {
+        track('book-demo-click');
+        if (typeof Calendly !== 'undefined') {
+            Calendly.initPopupWidget({ url: 'https://calendly.com/YOUR_USERNAME/redflag-demo' });
+        } else {
+            window.open('https://calendly.com/YOUR_USERNAME/redflag-demo', '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    //  CHAT SESSION STATE (max 3 sessions)
+    // ═══════════════════════════════════════════════════════════
+    const MAX_SESSIONS = 3;
+
+    function newChatSession(idx) {
+        return { idx, backendSessionId: null, files: [], messages: [], title: 'New Chat' };
+    }
+
+    const chatState = {
+        sessions: [newChatSession(0), null, null],
+        active: 0,
+        ws: null,
+        isRunning: false,
+        startTime: null,
+        pendingMsgIdx: -1,
+    };
+
+    // ─── Session helpers ─────────────────────────────────────────
+    function activeSession() { return chatState.sessions[chatState.active]; }
+
+    function chatNewSession() {
+        const slot = chatState.sessions.findIndex(s => s === null);
+        if (slot === -1) return;
+        chatState.sessions[slot] = newChatSession(slot);
+        chatState.active = slot;
+        chatRenderSidebar();
+        chatRenderMessages();
+    }
+
+    function chatSwitchSession(idx) {
+        if (chatState.isRunning || !chatState.sessions[idx]) return;
+        chatState.active = idx;
+        chatRenderSidebar();
+        chatRenderMessages();
+    }
+
+    async function chatDeleteSession(idx) {
+        const s = chatState.sessions[idx];
+        if (!s) return;
+        if (s.backendSessionId) {
+            try {
+                await fetch(`${API_BASE}/api/playground/session`, {
+                    method: 'DELETE',
+                    headers: { 'X-Session-ID': s.backendSessionId }
+                });
+            } catch { /* ignore */ }
+        }
+        chatState.sessions[idx] = null;
+        if (chatState.active === idx) {
+            const other = chatState.sessions.findIndex(x => x !== null);
+            if (other === -1) {
+                chatState.sessions[0] = newChatSession(0);
+                chatState.active = 0;
+            } else {
+                chatState.active = other;
+            }
+        }
+        chatRenderSidebar();
+        chatRenderMessages();
+    }
+
+    // ─── Sidebar render ──────────────────────────────────────────
+    function chatRenderSidebar() {
+        const list = document.getElementById('chat-session-list');
+        const filled = chatState.sessions.filter(s => s !== null).length;
+        list.innerHTML = chatState.sessions.map((s, i) => {
+            if (!s) return '';
+            const active = i === chatState.active;
+            const badge  = s.files.length > 0 ? `<span class="session-meta">${s.files.length}f</span>` : '';
+            return `
+                <div class="session-item${active ? ' active' : ''}" onclick="chatSwitchSession(${i})">
+                    <div class="session-dot"></div>
+                    <div class="session-label" id="session-label-${i}">${esc(s.title)}</div>
+                    ${badge}
+                    <button class="session-rename-btn" onclick="event.stopPropagation();chatStartRename(${i})" title="Rename">✏</button>
+                    <button class="session-del" onclick="event.stopPropagation();chatDeleteSession(${i})" title="Delete">✕</button>
+                </div>`;
+        }).join('');
+        const nb = document.getElementById('chat-new-btn');
+        if (nb) nb.disabled = filled >= MAX_SESSIONS;
+    }
+
+    // ─── Rename session ───────────────────────────────────────────
+    function chatStartRename(idx) {
+        const s = chatState.sessions[idx];
+        if (!s) return;
+        const labelEl = document.getElementById(`session-label-${idx}`);
+        if (!labelEl) return;
+        const input = document.createElement('input');
+        input.className = 'session-label-input';
+        input.value = s.title;
+        labelEl.replaceWith(input);
+        input.focus();
+        input.select();
+        const commit = () => {
+            const val = input.value.trim();
+            if (val) s.title = val;
+            chatRenderSidebar();
+        };
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter')  { e.preventDefault(); input.blur(); }
+            if (e.key === 'Escape') { input.value = s.title; input.blur(); }
+        });
+    }
+
+    // ─── Drag-drop onto chat area ─────────────────────────────────
+    // Prevent browser from opening files when dropped outside the target
+    document.addEventListener('dragover', e => e.preventDefault());
+    document.addEventListener('drop',     e => e.preventDefault());
+
+    let _dragCounter = 0;
+
+    function chatDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'copy';
+        _dragCounter++;
+        const ov = document.getElementById('chat-drop-overlay');
+        if (ov) ov.classList.add('active');
+    }
+
+    function chatDragLeave(e) {
+        e.preventDefault();
+        _dragCounter--;
+        if (_dragCounter <= 0) {
+            _dragCounter = 0;
+            const ov = document.getElementById('chat-drop-overlay');
+            if (ov) ov.classList.remove('active');
+        }
+    }
+
+    function chatDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        _dragCounter = 0;
+        const ov = document.getElementById('chat-drop-overlay');
+        if (ov) ov.classList.remove('active');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            pgFilesSelected(e.dataTransfer.files);
+        }
+    }
+
+    // ─── Files modal ──────────────────────────────────────────────
+    function chatShowFilesModal() {
+        const s    = activeSession();
+        const list = document.getElementById('files-modal-list');
+        if (!list) return;
+        if (!s || s.files.length === 0) {
+            list.innerHTML = '<div class="files-modal-empty">No files uploaded yet.</div>';
+        } else {
+            list.innerHTML = s.files.map((f, i) => `
+                <div class="files-modal-item">
+                    <span style="flex:1">📄 ${esc(f.name)}</span>
+                    <button onclick="chatRemoveFile(${i});chatUpdateFilesBtn();chatShowFilesModal()" style="background:none;border:none;color:var(--ink-muted);cursor:pointer;font-size:12px;font-family:inherit" title="Remove">✕</button>
+                </div>`).join('');
+        }
+        document.getElementById('files-modal-overlay').classList.add('active');
+    }
+
+    function chatHideFilesModal() {
+        document.getElementById('files-modal-overlay').classList.remove('active');
+    }
+
+    function chatCloseFilesModal(e) {
+        if (e.target === document.getElementById('files-modal-overlay')) chatHideFilesModal();
+    }
+
+    // ─── Suggestion chips ─────────────────────────────────────────
+    function chatUseQuestion(btn) {
+        const input = document.getElementById('pg-query-input');
+        if (input) {
+            input.value = btn.textContent;
+            input.focus();
+        }
+    }
+
+    function chatUpdateFilesBtn() {
+        const s   = activeSession();
+        const btn = document.getElementById('chat-files-btn');
+        const cnt = document.getElementById('chat-files-count');
+        if (!btn || !cnt) return;
+        if (s && s.files.length > 0) {
+            btn.style.display = 'flex';
+            cnt.textContent   = String(s.files.length);
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+
+    // ─── Messages render ─────────────────────────────────────────
+    function chatRenderMessages() {
+        const container = document.getElementById('chat-messages');
+        const s = activeSession();
+        if (!s) return;
+        if (s.messages.length === 0) {
+            const hasFiles = s.files.length > 0;
+            container.innerHTML = `
+                <div class="chat-drop-overlay" id="chat-drop-overlay">Drop files to upload</div>
+                <div class="chat-empty-state" id="chat-empty-state">
+                    ${!hasFiles ? `<div class="empty-headline">Upload documents or start chatting.</div>
+                    <div class="empty-hint">Drag &amp; drop files here, or use 📎 below.</div>` : ''}
+                    <div class="quick-questions" style="margin-top:${hasFiles ? '0' : '20'}px">
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Find cross-reference irregularities</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Summarize the key findings</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Identify missing or inconsistent data</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">What are the main risks or red flags?</button>
+                        <button class="quick-btn" onclick="chatUseQuestion(this)">Extract all dates and deadlines</button>
+                    </div>
+                </div>`;
+        } else {
+            container.innerHTML = '<div class="chat-drop-overlay" id="chat-drop-overlay">Drop files to upload</div>' +
+                s.messages.map((m, i) => chatBubbleHtml(m, i)).join('');
+        }
+        chatRenderFilesBar();
+        chatUpdateFilesBtn();
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function chatBubbleHtml(msg, mi) {
+        if (msg.role === 'user') {
+            return `
+                <div class="chat-row user">
+                    <div class="chat-avatar">U</div>
+                    <div class="chat-bubble"><div class="chat-bubble-content">${esc(msg.content)}</div></div>
+                </div>`;
+        }
+        // Assistant bubble
+        let inner = '';
+        if (msg.isThinking) {
+            inner = `<div class="chat-thinking">
+                <div class="chat-thinking-dot"></div>
+                <div class="chat-thinking-dot"></div>
+                <div class="chat-thinking-dot"></div>
+            </div>`;
+            if (msg.steps && msg.steps.length > 0) {
+                inner += `<div class="chat-steps-list" style="margin-top:8px">` +
+                    msg.steps.map(st => `<div class="chat-step-line ${st.type}">${esc(st.text)}</div>`).join('') +
+                    `</div>`;
+            }
+        } else {
+            inner = `<div class="chat-bubble-content">${renderAnswer(msg.content)}</div>`;
+            if (msg.steps && msg.steps.length > 0) {
+                inner += `<div class="chat-steps-log">
+                    <button class="chat-steps-toggle" onclick="chatToggleSteps(${mi})">▸ ${msg.steps.length} steps — show log</button>
+                    <div class="chat-steps-list" id="steps-log-${mi}" style="display:none">
+                        ${msg.steps.map(st => `<div class="chat-step-line ${st.type}">${esc(st.text)}</div>`).join('')}
+                    </div>
+                </div>`;
+            }
+            if (msg.stats) {
+                inner += `<div class="chat-bubble-stats">${esc(msg.stats)}</div>`;
+            }
+        }
+        return `
+            <div class="chat-row assistant">
+                <div class="chat-avatar">RF</div>
+                <div class="chat-bubble">${inner}</div>
+            </div>`;
+    }
+
+    function chatToggleSteps(mi) {
+        const el  = document.getElementById(`steps-log-${mi}`);
+        if (!el) return;
+        const show = el.style.display === 'none';
+        el.style.display = show ? 'flex' : 'none';
+        if (show) el.style.flexDirection = 'column';
+        const btn = el.previousElementSibling;
+        if (btn) {
+            const count = (activeSession().messages[mi].steps || []).length;
+            btn.textContent = show ? `▾ ${count} steps — hide log` : `▸ ${count} steps — show log`;
+        }
+    }
+
+    function renderAnswer(text) {
+        // Parse markdown first
+        let html = marked.parse(text, { breaks: false, gfm: true });
+
+        // Highlight citations
+        html = html.replace(/\[Source:[^\]]+\]/g, m => `<span class="chat-citation">${m}</span>`);
+
+        // Function to wrap specific headers into collapsible sections
+        const wrapSection = (headerText) => {
+            const regex = new RegExp(`(<h[23][^>]*>\\s*${headerText}[^<]*<\\/h[23]>)((?:(?!<h[23]).|\\n)*)`, 'gi');
+            html = html.replace(regex, (match, header, content) => {
+                const sectionId = 'sec-' + Math.random().toString(36).substr(2, 9);
+                return `
+                    <div class="chat-steps-log section-collapsible">
+                        <button class="chat-steps-toggle" onclick="chatToggleSubSection('${sectionId}')">▸ ${headerText} — show</button>
+                        <div class="chat-steps-list sub-section-content" id="${sectionId}" style="display:none; padding-left: 10px; border-left: 2px solid var(--border); margin-top: 10px;">
+                            ${content}
+                        </div>
+                    </div>`;
+            });
+        };
+
+        wrapSection('Sources Consulted');
+        wrapSection('Information Gaps');
+        wrapSection('Citations');
+
+        return html;
+    }
+
+    function chatToggleSubSection(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const show = el.style.display === 'none';
+        el.style.display = show ? 'block' : 'none';
+        const btn = el.previousElementSibling;
+        if (btn) {
+            const headerText = btn.textContent.split(' — ')[0].slice(2);
+            btn.textContent = show ? `▾ ${headerText} — hide` : `▸ ${headerText} — show`;
+        }
+    }
+
+    // ─── Files bar ───────────────────────────────────────────────
+    function chatRenderFilesBar() {
+        const s   = activeSession();
+        const bar = document.getElementById('chat-files-bar');
+        if (!bar || !s) return;
+        if (s.files.length === 0) { bar.style.display = 'none'; return; }
+        bar.style.display = 'flex';
+        bar.innerHTML = s.files.map((f, i) => `
+            <div class="chat-file-chip">
+                <span>📄 ${esc(f.name)}</span>
+                <button onclick="chatRemoveFile(${i})" title="Remove">✕</button>
+            </div>`).join('');
+    }
+
+    function chatRemoveFile(idx) {
+        const s = activeSession();
+        if (s) { s.files.splice(idx, 1); chatRenderFilesBar(); }
+    }
+
+    // ─── File upload ─────────────────────────────────────────────
+    async function pgFilesSelected(fileList) {
+        if (!fileList || fileList.length === 0) return;
+        const s = activeSession();
+        if (!s) return;
+
+        if (!s.backendSessionId) {
+            try {
+                const res  = await fetch(`${API_BASE}/api/playground/session`, { method: 'POST' });
+                if (res.status === 503) { alert('Playground is full. Try again shortly.'); return; }
+                const data = await res.json();
+                s.backendSessionId = data.session_id;
+                track('playground-start');
+            } catch (e) {
+                alert('Could not connect to backend at ' + API_BASE + '.\n\n' + e.message);
+                return;
+            }
+        }
+
+        const formData = new FormData();
+        const toAdd = [];
+        for (const f of fileList) {
+            if (f.size > 50 * 1024 * 1024) { alert(`"${f.name}" exceeds 50MB.`); continue; }
+            formData.append('files', f);
+            toAdd.push({ name: f.name });
+        }
+        if (toAdd.length === 0) return;
+
+        try {
+            const res  = await fetch(`${API_BASE}/api/playground/upload`, {
+                method: 'POST',
+                headers: { 'X-Session-ID': s.backendSessionId },
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.errors && data.errors.length > 0) console.warn('Upload errors:', data.errors);
+            // Overwrite existing files with the same name, then append new ones
+            for (const incoming of toAdd) {
+                const idx = s.files.findIndex(f => f.name === incoming.name);
+                if (idx !== -1) s.files[idx] = incoming;
+                else s.files.push(incoming);
+            }
+            chatRenderMessages();
+            if (document.getElementById('files-modal-overlay').classList.contains('active')) chatShowFilesModal();
+            track('playground-upload');
+        } catch (e) {
+            alert('Upload failed: ' + e.message);
+        }
+    }
+
+    // ─── Capacity check ──────────────────────────────────────────
+    async function pgCheckCapacity() {
+        const dot  = document.getElementById('pg-capacity-dot');
+        const text = document.getElementById('pg-capacity-text');
+        try {
+            const res  = await fetch(`${API_BASE}/api/playground/status`);
+            const data = await res.json();
+            const { available_slots, max_sessions, active_sessions } = data;
+            if (available_slots === 0) {
+                dot.classList.add('full');
+                text.innerHTML = `○ Playground is full (${esc(String(active_sessions))}/${esc(String(max_sessions))}). Sessions expire in ~5 min. <button onclick="pgCheckCapacity()" style="background:none;border:none;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:11px;color:var(--ink-muted);">Refresh</button>`;
+            } else {
+                dot.classList.remove('full');
+                text.textContent = `● ${available_slots} of ${max_sessions} spots available`;
+            }
+        } catch {
+            text.textContent = 'Status unavailable';
+        }
+    }
+
+    // ─── Key input (Enter to chat, Shift+Enter for newline) ──────
+    function chatInputKeydown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            pgRunAnalysis();
+        }
+    }
+
+    // ─── Run analysis / chat ─────────────────────────────────────
+    // ─── Compact context toggle ───────────────────────────────
+    function pgToggleCompact() {
+        const btn = document.getElementById('pg-compact-btn');
+        if (!btn) return;
+        btn.classList.toggle('active');
+        btn.title = btn.classList.contains('active')
+            ? 'Compact ON: trimmed summaries sent to LLM (faster, lower quality). Click to disable.'
+            : 'Compact context: send trimmed document summaries to save LLM tokens. Off = send full context (better quality).';
+    }
+
+    function pgRunAnalysis() {
+        const query = document.getElementById('pg-query-input').value.trim();
+        if (!query || chatState.isRunning) return;
+        const s = activeSession();
+        if (!s) return;
+
+        // Require files before running agent
+        if (s.files.length === 0) {
+            s.messages.push({ role: 'user', content: query });
+            s.messages.push({ role: 'assistant', isThinking: false, content: 'Please upload documents first before asking questions.', steps: [], stats: '' });
+            document.getElementById('pg-query-input').value = '';
+            chatRenderSidebar();
+            chatRenderMessages();
+            return;
+        }
+
+        const resolvedConfig = getResolvedConfiguration();
+        const chatOnly = false;
+        const compactContext = document.getElementById('pg-compact-btn')?.classList.contains('active') ?? false;
+
+        document.getElementById('pg-query-input').value = '';
+
+        // Add user message and update title
+        s.messages.push({ role: 'user', content: query });
+        if (s.title === 'New Chat') s.title = query.slice(0, 32) + (query.length > 32 ? '…' : '');
+
+        // Add thinking placeholder
+        const thinkingIdx = s.messages.length;
+        s.messages.push({ role: 'assistant', isThinking: true, content: '', steps: [] });
+        chatState.pendingMsgIdx = thinkingIdx;
+        chatState.isRunning     = true;
+        chatState.startTime     = Date.now();
+
+        chatRenderSidebar();
+        chatRenderMessages();
+
+        document.getElementById('pg-run-btn').disabled = true;
+
+        const wsHost     = API_BASE.replace(/^https?:\/\//, '');
+        const wsProtocol = API_BASE.startsWith('https') ? 'wss' : 'ws';
+        if (chatState.ws) { chatState.ws.close(); chatState.ws = null; }
+        chatState.ws = new WebSocket(`${wsProtocol}://${wsHost}/ws/explore`);
+
+        chatState.ws.onopen = () => {
+            pgCheckCapacity(); // Update capacity when starting
+            const payload = {
+                task:            query,
+                session_id:      s.backendSessionId,
+                chat_only:       chatOnly,
+                compact_context: compactContext,
+            };
+            if (resolvedConfig.active) {
+                payload.provider = resolvedConfig.provider;
+                payload.model = resolvedConfig.model;
+                payload.api_key = resolvedConfig.apiKey;
+            }
+            chatState.ws.send(JSON.stringify(payload));
+        };
+        chatState.ws.onmessage = (e) => pgHandleMessage(JSON.parse(e.data));
+        chatState.ws.onerror   = ()  => pgFinishWithError('Connection failed. Is the server running?');
+        chatState.ws.onclose   = ()  => { if (chatState.isRunning) pgFinish(); };
+
+        track('playground-query');
+    }
+
+    function pgHandleMessage(msg) {
+        const s   = activeSession();
+        const pmi = chatState.pendingMsgIdx;
+        const pending = s && pmi >= 0 ? s.messages[pmi] : null;
+
+        const toolIcons = { scan_folder:'📂', preview_file:'👁', parse_file:'📖', read_section:'📑', read:'📄', grep:'🔍', glob:'🔎' };
+
+        switch (msg.type) {
+            case 'start': break;
+            case 'ingest':
+                if (pending) {
+                    const n = (msg.data && msg.data.documents_found) || '?';
+                    pending.steps.push({ type: 'ingest', text: `📂 ${(msg.data && msg.data.message) || 'Ingesting...'} Found ${n} documents.` });
+                    chatUpdatePending();
+                }
+                break;
+            case 'tool_call':
+                if (pending) {
+                    const d   = msg.data || {};
+                    const inp = d.tool_input || {};
+                    const tgt = inp.file_path || inp.directory || inp.path || inp.query || '';
+                    pending.steps.push({ type: 'tool', text: `${toolIcons[d.tool_name] || '📄'} ${d.tool_name}${tgt ? ': ' + tgt : ''}` });
+                    chatUpdatePending();
+                }
+                break;
+            case 'go_deeper':
+                if (pending) {
+                    pending.steps.push({ type: 'tool', text: `📁 Navigate: ${(msg.data || {}).directory || ''}` });
+                    chatUpdatePending();
+                }
+                break;
+            case 'verifying':
+                if (pending) {
+                    pending.steps.push({ type: 'verify', text: `✓ ${(msg.data && msg.data.message) || 'Verifying citations...'}` });
+                    chatUpdatePending();
+                }
+                break;
+            case 'complete':  pgHandleComplete(msg.data); break;
+            case 'error':     pgFinishWithError((msg.data && msg.data.message) || 'Unknown error'); break;
+            case 'cancelled':
+                if (pending) { pending.isThinking = false; pending.content = 'Cancelled.'; chatRenderMessages(); }
+                pgFinish();
+                break;
+            case 'ask_human': pgShowHumanModal(msg.data); break;
+        }
+    }
+
+    function chatUpdatePending() {
+        const container = document.getElementById('chat-messages');
+        const s   = activeSession();
+        const pmi = chatState.pendingMsgIdx;
+        if (!s || pmi < 0) return;
+        const rows = container.querySelectorAll('.chat-row');
+        if (rows[pmi]) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = chatBubbleHtml(s.messages[pmi], pmi);
+            rows[pmi].replaceWith(tmp.firstElementChild);
+        } else {
+            chatRenderMessages();
+        }
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function pgHandleComplete(data) {
+        if (data && data.error) { pgFinishWithError(data.error); return; }
+        const s   = activeSession();
+        const pmi = chatState.pendingMsgIdx;
+        if (!s || pmi < 0) return;
+
+        const elapsed = pgFormatDuration((Date.now() - chatState.startTime) / 1000);
+        const st = data && data.stats;
+        let statsLine = '';
+        if (st) {
+            if (st.mode === 'chat') {
+                statsLine = `${st.api_calls || 1} API call · $${(st.estimated_cost || 0).toFixed(4)} · ${elapsed}`;
+            } else {
+                statsLine = `${st.steps} steps · ${st.documents_scanned || 0} docs · $${(st.estimated_cost || 0).toFixed(4)} · ${elapsed}`;
+            }
+        }
+
+        s.messages[pmi] = {
+            role: 'assistant',
+            isThinking: false,
+            content: (data && data.final_result) || 'No result returned.',
+            steps: s.messages[pmi].steps || [],
+            stats: statsLine,
+        };
+
+        chatRenderMessages();
+        pgFinish();
+        track('playground-complete');
+    }
+
+    function pgResetExpiredSessionState() {
+        const s = activeSession();
+        if (!s) return;
+        s.backendSessionId = null;
+        s.files = [];
+        chatRenderFilesBar();
+        chatUpdateFilesBtn();
+    }
+
+    function pgFinishWithError(msg) {
+        const s   = activeSession();
+        const pmi = chatState.pendingMsgIdx;
+        let displayMessage = msg;
+        if (typeof msg === 'string' && (msg.includes('Invalid or expired session') || msg.includes('No files uploaded yet'))) {
+            pgResetExpiredSessionState();
+            displayMessage = 'Your uploaded session expired or was reset on the backend. Please upload your documents again, then rerun the question.';
+        }
+        if (s && pmi >= 0) {
+            s.messages[pmi] = { role: 'assistant', isThinking: false, content: `⚠ Error: ${displayMessage}`, steps: [], stats: '' };
+            chatRenderMessages();
+        }
+        pgFinish();
+    }
+
+    function pgFinish() {
+        chatState.isRunning     = false;
+        chatState.pendingMsgIdx = -1;
+        if (chatState.ws) { chatState.ws.close(); chatState.ws = null; }
+        const rb = document.getElementById('pg-run-btn');
+        if (rb) rb.disabled = false;
+        pgCheckCapacity(); // Update capacity when task finishes
+    }
+
+    function pgFormatDuration(seconds) {
+        return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
+    }
+
+    // ─── Human input modal ───────────────────────────────────────
+    function pgShowHumanModal(data) {
+        document.getElementById('human-modal-question').textContent = (data && (data.question || data.reason)) || 'Input required.';
+        document.getElementById('human-modal-input').value = '';
+        document.getElementById('human-modal').classList.add('active');
+    }
+
+    function pgSubmitHuman() {
+        const response = document.getElementById('human-modal-input').value.trim();
+        if (!response) return;
+        document.getElementById('human-modal').classList.remove('active');
+        if (chatState.ws) chatState.ws.send(JSON.stringify({ type: 'human_response', response }));
+    }
+
+    // ─── Cleanup on unload ───────────────────────────────────────
+    window.addEventListener('beforeunload', () => {
+        chatState.sessions.forEach(s => {
+            if (s && s.backendSessionId) {
+                navigator.sendBeacon(`${API_BASE}/api/playground/session/end`, JSON.stringify({ session_id: s.backendSessionId }));
+            }
+        });
+    });
+
+    // ─── Initial render ──────────────────────────────────────────
+    discoverBackend().then(found => {
+        if (!found) {
+            alert('CRITICAL: No backend server was reachable. Check the browser console for the attempted endpoints and any CORS or mixed-content errors. Some features will not work.');
+        }
+        renderConfigurationForm();
+        chatRenderSidebar();
+        routeFromHash();
+        
+        // Periodically update capacity
+        pgCheckCapacity();
+        setInterval(pgCheckCapacity, 30000);
+    });
+</script>
+
+<!-- Marked.js markdown renderer -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Calendly widget script (Section 16) -->
+<script src="https://assets.calendly.com/assets/external/widget.js" async></script>
+
+</body>
+</html>
